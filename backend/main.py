@@ -146,8 +146,9 @@ if __name__ == "__main__":
     
     Server configuration:
     - Host: 0.0.0.0 (accessible from all network interfaces)
-    - Port: 8000
+    - Port: from environment variable or 8000 default
     - Auto-reload enabled for development
     """
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

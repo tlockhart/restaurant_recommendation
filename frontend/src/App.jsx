@@ -9,6 +9,9 @@ import festive from './assets/images/festive.png'
 import indulgent from './assets/images/indulgent.png'
 import refreshing from './assets/images/refreshing.png'
 
+// API base URL
+const API_BASE_URL = 'https://restaurant-recommendation-daad.onrender.com'
+
 /**
  * Array of mood images with their corresponding names and sources
  */
@@ -76,7 +79,7 @@ function App() {
   const getRecommendation = async (mood) => {
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:8000/recommend', {
+      const response = await fetch(`${API_BASE_URL}/recommend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mood: mood || selectedMood })
@@ -119,7 +122,7 @@ function App() {
     setTranslating(true)
     try {
       const originalText = originalRecommendation.join('\n')
-      const response = await fetch('http://localhost:8000/translate', {
+      const response = await fetch(`${API_BASE_URL}/translate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: originalText, language: selectedLanguage })

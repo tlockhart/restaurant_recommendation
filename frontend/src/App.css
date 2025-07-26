@@ -25,19 +25,18 @@ body {
 }
 
 .mood-gallery {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin: 1rem 0;
-  justify-items: center;
   justify-content: center;
+  align-items: center;
   width: 100%;
   max-width: 800px;
 }
 
 @media (min-width: 768px) {
   .mood-gallery {
-    grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
     margin: 2rem 0;
   }
@@ -66,9 +65,8 @@ body {
 }
 
 .mood-button img {
-  /* height: 150px; */
-  width: 100%;
-  max-width: 200px;
+  height: 120px;
+  width: auto;
   object-fit: contain;
   display: block;
   border-radius: 12px;
@@ -76,8 +74,7 @@ body {
 
 @media (min-width: 768px) {
   .mood-button img {
-    height: 300px;
-    max-width: none;
+    height: 200px;
   }
 }
 

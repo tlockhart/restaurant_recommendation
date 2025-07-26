@@ -19,12 +19,10 @@ from huggingface_hub import hf_hub_download
 import os
 import random
 
-# Load environment variables
+# Load environment variables (optional for local development)
 dotenv_path = find_dotenv()
 if dotenv_path:
     load_dotenv(dotenv_path)
-else:
-    raise FileNotFoundError(".env file not found!")
 
 # Configuration constants
 GEMINI_MODEL = "gemini-2.0-flash"
