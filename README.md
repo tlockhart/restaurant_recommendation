@@ -1,8 +1,10 @@
 # Philadelphia Restaurant Recommendation System
 
-An AI-powered restaurant recommendation system that suggests restaurants based on your mood. The application features a React frontend with mood-based image selection and a FastAPI backend that uses machine learning to provide personalized restaurant recommendations with multilingual translation support.
+An AI-powered restaurant recommendation system that suggests Philadelphia restaurants based on your mood. The application features a React frontend with mood-based image selection and a FastAPI backend that uses machine learning to provide personalized restaurant recommendations with multilingual translation support.
 
 ## Description
+
+> **Important Note:** The `philly_reviews_with_mood.parquet` dataset used in this application was preprocessed using the Hugging Face all-MiniLM-L6-v2 sentence-embeddings model to classify restaurant reviews into one of 8 mood categories. The model achieved approximately 60% accuracy on the sample dataset when compared against human labeled moods.
 
 This application helps users discover restaurants that match their current mood through an intuitive visual interface. Users can:
 
