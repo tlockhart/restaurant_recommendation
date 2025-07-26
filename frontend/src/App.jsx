@@ -1,0 +1,237 @@
+import { useState, useEffect } from 'react'
+import './App.css'
+import adventurous from './assets/images/adventurous.png'
+import comforting from './assets/images/comforting.png'
+import energizing from './assets/images/energizing.png'
+import romantic from './assets/images/romantic.png'
+import cozy from './assets/images/cozy.png'
+import festive from './assets/images/festive.png'
+import indulgent from './assets/images/indulgent.png'
+import refreshing from './assets/images/refreshing.png'
+
+/**
+ * Array of mood images with their corresponding names and sources
+ */
+const moodImages = [
+  { name: 'Adventurous', src: adventurous },
+  { name: 'Comforting', src: comforting },
+  { name: 'Energizing', src: energizing },
+  { name: 'Romantic', src: romantic },
+  { name: 'Cozy', src: cozy },
+  { name: 'Festive', src: festive },
+  { name: 'Indulgent', src: indulgent },
+  { name: 'Refreshing', src: refreshing }
+]
+
+/**
+ * Main App component for restaurant recommendation system
+ * @returns {JSX.Element} The main application component
+ */
+function App() {
+  // State management for application
+  const [selectedMood, setSelectedMood] = useState('Adventurous')
+  const [recommendation, setRecommendation] = useState('')
+  const [showTranslation, setShowTranslation] = useState(false)
+  const [selectedLanguage, setSelectedLanguage] = useState('English')
+  const [translatedText, setTranslatedText] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [translating, setTranslating] = useState(false)
+
+  /**
+   * Formats recommendation text by adding emojis to field labels
+   * @param {string} text - Raw recommendation text
+   * @returns {Array<string>} Formatted lines with emojis
+   */
+  const formatRecommendation = (text) => {
+    const lines = text.split('\n').filter(line => line.trim())
+    const formattedLines = lines.map(line => {
+      if (line.startsWith('**') && line.includes(':')) {
+        const match = line.match(/\*\*([^*]+):\*\*/)
+        if (match) {
+          const fieldName = match[1].toLowerCase()
+          let emoji = ''
+          
+          if (fieldName.includes('summary')) emoji = '📝'
+          else if (fieldName.includes('phone')) emoji = '📞'
+          else if (fieldName.includes('address')) emoji = '📍'
+          else if (fieldName.includes('mood')) emoji = '😊'
+          else if (fieldName.includes('highlight')) emoji = '⭐'
+          else if (fieldName.includes('rating')) emoji = '⭐'
+          else if (fieldName.includes('hour')) emoji = '🕒'
+          else if (fieldName.includes('price')) emoji = '💰'
+          else if (fieldName.includes('popular')) emoji = '🍽️'
+          
+          return line.replace(/\*\*([^*]+):\*\*/g, `<strong>${emoji} $1:</strong>`)
+        }
+      }
+      return line
+    })
+    return formattedLines
+  }
+
+  /**
+   * Fetches restaurant recommendation from backend API
+   * @param {string} mood - Selected mood for recommendation
+   */
+  const getRecommendation = async (mood) => {
+    setLoading(true)
+    try {
+      const response = await fetch('http://localhost:8000/recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mood: mood || selectedMood })
+      })
+      const data = await response.json()
+      if (data.error) {
+        setRecommendation(data.error)
+      } else {
+        setRecommendation(formatRecommendation(data.recommendation))
+        setShowTranslation(true)
+      }
+    } catch (error) {
+      setRecommendation('Error getting recommendation')
+    }
+    setLoading(false)
+  }
+
+  // Auto-scroll to bottom when recommendation appears
+  useEffect(() => {
+    if (recommendation) {
+      setTimeout(() => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
+      }, 100)
+    }
+  }, [recommendation])
+
+  // Auto-scroll to bottom when translation appears
+  useEffect(() => {
+    if (translatedText) {
+      setTimeout(() => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
+      }, 100)
+    }
+  }, [translatedText])
+
+  /**
+   * Translates recommendation text to selected language
+   * Maps emojis based on line position to maintain consistency
+   */
+  const translateText = async () => {
+    if (selectedLanguage === 'English') {
+      setTranslatedText(recommendation)
+      return
+    }
+    setTranslating(true)
+    try {
+      const originalText = recommendation.join('\n')
+      const response = await fetch('http://localhost:8000/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: originalText, language: selectedLanguage })
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      const translatedLines = data.translated_text.split('\n').filter(line => line.trim())
+      
+      // Map emojis based on line index to match original order
+      const emojis = ['📝', '📞', '📍', '😊', '⭐', '⭐', '🕒', '💰', '🍽️']
+      
+      const formattedTranslation = translatedLines.map((line, index) => {
+        const emoji = emojis[index] || ''
+        
+        // Check if line already has emoji to prevent duplicates
+        if (line.includes('📝') || line.includes('📞') || line.includes('📍') || 
+            line.includes('😊') || line.includes('⭐') || line.includes('🕒') || 
+            line.includes('💰') || line.includes('🍽️')) {
+          return line
+        }
+        
+        // If line contains a colon, it's a field label
+        if (line.includes(':')) {
+          const colonIndex = line.indexOf(':')
+          const label = line.substring(0, colonIndex + 1)
+          const content = line.substring(colonIndex + 1)
+          return `<strong>${emoji} ${label}</strong>${content}`
+        } else {
+          // For lines without colons (like summary and highlight)
+          return `<strong>${emoji}</strong> ${line}`
+        }
+      })
+      
+      setTranslatedText(formattedTranslation)
+    } catch (error) {
+      console.error('Translation error:', error)
+      setTranslatedText(['Translation error: ' + error.message])
+    }
+    setTranslating(false)
+  }
+
+  return (
+    <div className="app">
+      <h1>What type of restaurant are you in the mood for?</h1>
+      
+      <div className="mood-gallery">
+        {moodImages.map((mood) => (
+          <button
+            key={mood.name}
+            className={`mood-button ${loading && selectedMood === mood.name ? 'loading' : ''}`}
+            onClick={() => {
+              setSelectedMood(mood.name)
+              setShowTranslation(false)
+              setRecommendation('')
+              setTranslatedText('')
+              getRecommendation(mood.name)
+            }}
+            disabled={loading}
+          >
+            <img src={mood.src} alt={mood.name} />
+            {loading && selectedMood === mood.name && <div className="loading-overlay">Finding...</div>}
+          </button>
+        ))}
+      </div>
+
+      {recommendation && Array.isArray(recommendation) && (
+        <div className="recommendation">
+          <ol>
+            {recommendation.map((line, index) => (
+              <li key={index} dangerouslySetInnerHTML={{ __html: line }}></li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {showTranslation && (
+        <div className="translation-section">
+          <select 
+            value={selectedLanguage} 
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+          >
+            <option value="English">English</option>
+            <option value="French">French</option>
+            <option value="German">German</option>
+            <option value="Romanian">Romanian</option>
+          </select>
+          <button onClick={translateText} disabled={translating}>
+            {translating ? 'Translating...' : 'Translate'}
+          </button>
+        </div>
+      )}
+
+      {translatedText && Array.isArray(translatedText) && (
+        <div className="translated-text">
+          <ol>
+            {translatedText.map((line, index) => (
+              <li key={index} dangerouslySetInnerHTML={{ __html: line }}></li>
+            ))}
+          </ol>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default App

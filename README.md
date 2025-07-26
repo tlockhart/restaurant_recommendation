@@ -1,2 +1,100 @@
-# restaurant_recommendation
-This project leverages modern machine learning and NLP technologies to map user moods to restaurant recommendations.
+# Philadelphia Restaurant Recommendation System
+
+An AI-powered restaurant recommendation system that suggests restaurants based on your mood. The application features a React frontend with mood-based image selection and a FastAPI backend that uses machine learning to provide personalized restaurant recommendations with multilingual translation support.
+
+## Description
+
+This application helps users discover restaurants that match their current mood through an intuitive visual interface. Users can:
+
+- Select from 8 different mood categories (Adventurous, Comforting, Energizing, Romantic, Cozy, Festive, Indulgent, Refreshing)
+- Get AI-generated restaurant recommendations with detailed information including summary, contact details, address, hours, pricing, and popular items
+- Translate recommendations into multiple languages (French, German, Romanian)
+- Enjoy a responsive dark-themed interface with smooth scrolling and loading animations
+
+The system uses a curated dataset of Philadelphia restaurant reviews with mood classifications and leverages Google's Gemini AI for generating detailed restaurant information and translations.
+
+## Installation
+
+### Prerequisites
+- Python 3.8+
+- Node.js 16+
+- Conda (recommended for Python environment management)
+
+### Backend Setup
+
+1. Navigate to the project directory:
+```bash
+cd restaurant_recommendation
+```
+
+2. Create and activate a conda environment:
+```bash
+conda create -n restaurant-rec python=3.9
+conda activate restaurant-rec
+```
+
+3. Install Python dependencies:
+```bash
+pip install -r backend/requirements.txt
+```
+
+4. Create a `.env` file in the root directory with your API credentials:
+```
+GEMINI_API_KEY=your_gemini_api_key_here
+REPO_ID=tlockhart/philly_reviews_with_mood.parquet
+FILE_NAME=philly_reviews_with_mood.parquet
+```
+
+### Frontend Setup
+
+1. Navigate to the frontend directory:
+```bash
+cd frontend
+```
+
+2. Install Node.js dependencies:
+```bash
+npm install
+```
+
+## Running the Application
+
+### Start the Backend Server
+
+1. Ensure you're in the project root directory and conda environment is activated:
+```bash
+conda activate restaurant-rec
+cd backend
+python main.py
+```
+
+The backend server will start on `http://localhost:8000`
+
+### Start the Frontend Development Server
+
+1. In a new terminal, navigate to the frontend directory:
+```bash
+cd frontend
+npm run dev
+```
+
+The frontend will start on `http://localhost:5173`
+
+### Access the Application
+
+Open your web browser and go to `http://localhost:5173` to use the restaurant recommendation system.
+
+## Usage
+
+1. **Select a Mood**: Click on one of the 8 mood images that best represents how you're feeling
+2. **Get Recommendation**: The system will automatically fetch and display a restaurant recommendation
+3. **View Details**: Review the restaurant information including summary, contact details, hours, and popular items
+4. **Translate (Optional)**: Select a language from the dropdown and click "Translate" to view the recommendation in French, German, or Romanian
+
+## Technology Stack
+
+- **Frontend**: React, Vite, CSS3
+- **Backend**: FastAPI, Python
+- **AI/ML**: Google Gemini API, Hugging Face Datasets
+- **Data**: Philadelphia restaurant reviews with mood classifications
+- **Translation**: Google Gemini AI translation capabilities
