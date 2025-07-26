@@ -9,3 +9,6 @@ transformers>=4.41.0
 python-dotenv
 torch
 pyarrow
+pandas
+huggingface-hub
+pydantic

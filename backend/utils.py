@@ -135,6 +135,7 @@ def translate(input_text, target_language):
         ValueError: If target language is not supported
     """
     language_codes = {
+        "Spanish": "spa_Latn",
         "French": "fra_Latn",
         "German": "deu_Latn",
         "Romanian": "ron_Latn"

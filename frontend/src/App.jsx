@@ -31,9 +31,9 @@ function App() {
   // State management for application
   const [selectedMood, setSelectedMood] = useState('Adventurous')
   const [recommendation, setRecommendation] = useState('')
+  const [originalRecommendation, setOriginalRecommendation] = useState('')
   const [showTranslation, setShowTranslation] = useState(false)
   const [selectedLanguage, setSelectedLanguage] = useState('English')
-  const [translatedText, setTranslatedText] = useState('')
   const [loading, setLoading] = useState(false)
   const [translating, setTranslating] = useState(false)
 
@@ -55,7 +55,7 @@ function App() {
           else if (fieldName.includes('phone')) emoji = '📞'
           else if (fieldName.includes('address')) emoji = '📍'
           else if (fieldName.includes('mood')) emoji = '😊'
-          else if (fieldName.includes('highlight')) emoji = '⭐'
+          else if (fieldName.includes('highlight')) emoji = '✅'
           else if (fieldName.includes('rating')) emoji = '⭐'
           else if (fieldName.includes('hour')) emoji = '🕒'
           else if (fieldName.includes('price')) emoji = '💰'
@@ -85,7 +85,9 @@ function App() {
       if (data.error) {
         setRecommendation(data.error)
       } else {
-        setRecommendation(formatRecommendation(data.recommendation))
+        const formatted = formatRecommendation(data.recommendation)
+        setRecommendation(formatted)
+        setOriginalRecommendation(formatted)
         setShowTranslation(true)
       }
     } catch (error) {
@@ -103,27 +105,20 @@ function App() {
     }
   }, [recommendation])
 
-  // Auto-scroll to bottom when translation appears
-  useEffect(() => {
-    if (translatedText) {
-      setTimeout(() => {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
-      }, 100)
-    }
-  }, [translatedText])
+
 
   /**
    * Translates recommendation text to selected language
-   * Maps emojis based on line position to maintain consistency
+   * Replaces the original recommendation with translated version
    */
   const translateText = async () => {
     if (selectedLanguage === 'English') {
-      setTranslatedText(recommendation)
+      setRecommendation(originalRecommendation)
       return
     }
     setTranslating(true)
     try {
-      const originalText = recommendation.join('\n')
+      const originalText = originalRecommendation.join('\n')
       const response = await fetch('http://localhost:8000/translate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -138,34 +133,36 @@ function App() {
       const translatedLines = data.translated_text.split('\n').filter(line => line.trim())
       
       // Map emojis based on line index to match original order
-      const emojis = ['📝', '📞', '📍', '😊', '⭐', '⭐', '🕒', '💰', '🍽️']
+      const emojis = ['📝', '📞', '📍', '😊', '✅', '⭐', '🕒', '💰', '🍽️']
       
       const formattedTranslation = translatedLines.map((line, index) => {
         const emoji = emojis[index] || ''
         
         // Check if line already has emoji to prevent duplicates
         if (line.includes('📝') || line.includes('📞') || line.includes('📍') || 
-            line.includes('😊') || line.includes('⭐') || line.includes('🕒') || 
-            line.includes('💰') || line.includes('🍽️')) {
+            line.includes('😊') || line.includes('✅') || line.includes('⭐') || 
+            line.includes('🕒') || line.includes('💰') || line.includes('🍽️')) {
           return line
         }
         
-        // If line contains a colon, it's a field label
+        // Always add emoji and formatting based on position
         if (line.includes(':')) {
           const colonIndex = line.indexOf(':')
           const label = line.substring(0, colonIndex + 1)
           const content = line.substring(colonIndex + 1)
           return `<strong>${emoji} ${label}</strong>${content}`
         } else {
-          // For lines without colons (like summary and highlight)
-          return `<strong>${emoji}</strong> ${line}`
+          // For lines without colons, add a generic label based on position
+          const labels = ['Summary:', 'Phone:', 'Address:', 'Moods:', 'Highlight:', 'Rating:', 'Hours:', 'Price:', 'Popular Items:']
+          const label = labels[index] || 'Info:'
+          return `<strong>${emoji} ${label}</strong> ${line}`
         }
       })
       
-      setTranslatedText(formattedTranslation)
+      setRecommendation(formattedTranslation)
     } catch (error) {
       console.error('Translation error:', error)
-      setTranslatedText(['Translation error: ' + error.message])
+      setRecommendation(['Translation error: ' + error.message])
     }
     setTranslating(false)
   }
@@ -183,7 +180,8 @@ function App() {
               setSelectedMood(mood.name)
               setShowTranslation(false)
               setRecommendation('')
-              setTranslatedText('')
+              setOriginalRecommendation('')
+              setSelectedLanguage('English')
               getRecommendation(mood.name)
             }}
             disabled={loading}
@@ -208,9 +206,15 @@ function App() {
         <div className="translation-section">
           <select 
             value={selectedLanguage} 
-            onChange={(e) => setSelectedLanguage(e.target.value)}
+            onChange={(e) => {
+              setSelectedLanguage(e.target.value)
+              if (e.target.value === 'English') {
+                setRecommendation(originalRecommendation)
+              }
+            }}
           >
             <option value="English">English</option>
+            <option value="Spanish">Spanish</option>
             <option value="French">French</option>
             <option value="German">German</option>
             <option value="Romanian">Romanian</option>
@@ -218,16 +222,6 @@ function App() {
           <button onClick={translateText} disabled={translating}>
             {translating ? 'Translating...' : 'Translate'}
           </button>
-        </div>
-      )}
-
-      {translatedText && Array.isArray(translatedText) && (
-        <div className="translated-text">
-          <ol>
-            {translatedText.map((line, index) => (
-              <li key={index} dangerouslySetInnerHTML={{ __html: line }}></li>
-            ))}
-          </ol>
         </div>
       )}
     </div>

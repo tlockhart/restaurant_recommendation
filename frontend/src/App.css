@@ -10,7 +10,7 @@ body {
 .app {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 3rem;
+  padding: 1rem;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -18,15 +18,29 @@ body {
   justify-content: center;
 }
 
+@media (min-width: 768px) {
+  .app {
+    padding: 2rem 3rem;
+  }
+}
+
 .mood-gallery {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-  margin: 2rem 0;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  margin: 1rem 0;
   justify-items: center;
   justify-content: center;
   width: 100%;
   max-width: 800px;
+}
+
+@media (min-width: 768px) {
+  .mood-gallery {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin: 2rem 0;
+  }
 }
 
 .mood-button {
@@ -52,10 +66,19 @@ body {
 }
 
 .mood-button img {
-  height: 300px;
+  height: 150px;
+  width: 100%;
+  max-width: 200px;
   object-fit: contain;
   display: block;
   border-radius: 12px;
+}
+
+@media (min-width: 768px) {
+  .mood-button img {
+    height: 300px;
+    max-width: none;
+  }
 }
 
 .mood-button:disabled {
@@ -101,11 +124,20 @@ body {
 
 .recommendation {
   background-color: #333333;
-  padding: 1.5rem;
+  padding: 1rem;
   border-radius: 8px;
-  margin: 2rem 0;
+  margin: 1rem 0;
   text-align: left;
   border: 1px solid #555555;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .recommendation {
+    padding: 1.5rem;
+    margin: 2rem 0;
+  }
 }
 
 .recommendation ol {
@@ -119,24 +151,48 @@ body {
   margin-bottom: 0.5rem;
   display: flex;
   align-items: flex-start;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .recommendation li strong {
   flex-shrink: 0;
   margin-right: 0.5rem;
+  min-width: fit-content;
 }
 
 .translation-section {
   margin: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 300px;
+}
+
+@media (min-width: 768px) {
+  .translation-section {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    max-width: none;
+  }
 }
 
 .translation-section select {
   padding: 0.5rem;
-  margin-right: 1rem;
   border-radius: 4px;
   border: 1px solid #555555;
   background-color: #333333;
   color: #ffffff;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .translation-section select {
+    margin-right: 1rem;
+    width: auto;
+  }
 }
 
 .translation-section button {
@@ -146,6 +202,13 @@ body {
   padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .translation-section button {
+    width: auto;
+  }
 }
 
 .translation-section button:hover {
