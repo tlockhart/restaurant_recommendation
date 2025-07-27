@@ -126,7 +126,8 @@ body {
   margin: 1rem 0;
   text-align: left;
   border: 1px solid #555555;
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
   box-sizing: border-box;
 }
 

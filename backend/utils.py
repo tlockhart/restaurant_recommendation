@@ -137,30 +137,52 @@ def translate(input_text, target_language):
         raise ValueError(f"Language {target_language} not supported!")
 
     llm = ChatGoogleGenerativeAI(model=GEMINI_MODEL, google_api_key=GEMINI_API_KEY, temperature=0.1)
-    prompt = f"Translate the following text to {target_language}. Keep the same formatting and structure:\n\n{input_text}"
+    prompt = f"Translate the following text to {target_language}. Return ONLY the translated text with the same formatting and structure, no introduction:\n\n{input_text}"
     
     response = llm.invoke(prompt)
-    return response.content
+    # Remove any introductory text
+    content = response.content
+    if "Here's the translation" in content:
+        content = content.split("Here's the translation", 1)[1]
+        content = content.split(":", 1)[1] if ":" in content else content
+        content = content.strip()
+    return content
 
-def load_parquet_from_huggingface(repo_id, filename):
+def load_parquet_from_huggingface(repo_id, filename, max_rows=1000):
     """
-    Downloads and loads a parquet dataset from Hugging Face Hub.
+    Downloads and loads a limited parquet dataset from Hugging Face Hub.
     
     Args:
         repo_id (str): Hugging Face repository ID
         filename (str): Name of the parquet file
+        max_rows (int): Maximum number of rows to load
         
     Returns:
         pd.DataFrame or None: Loaded dataset or None if failed
     """
-    try:
-        file_path = hf_hub_download(repo_id=repo_id, filename=filename, repo_type="dataset")
-        df = pd.read_parquet(file_path)
-        print("Dataset loaded successfully!")
-        return df
-    except Exception as e:
-        print(f"Failed to load dataset: {e}")
-        return None
+    import time
+    for attempt in range(3):
+        try:
+            print(f"Download attempt {attempt + 1}/3...")
+            file_path = hf_hub_download(
+                repo_id=repo_id, 
+                filename=filename, 
+                repo_type="dataset",
+                force_download=False
+            )
+            # Read only first max_rows to save memory
+            df = pd.read_parquet(file_path, engine='pyarrow')
+            if len(df) > max_rows:
+                df = df.sample(n=max_rows, random_state=42)
+            print(f"Dataset loaded: {len(df)} rows")
+            return df
+        except Exception as e:
+            print(f"Attempt {attempt + 1} failed: {e}")
+            if attempt < 2:
+                time.sleep(5)  # Wait before retry
+            else:
+                print(f"All attempts failed to load dataset")
+                return None
 
 def recommend_restaurant_by_mood_content(df, mood, num_of_recommendations=5):
     """

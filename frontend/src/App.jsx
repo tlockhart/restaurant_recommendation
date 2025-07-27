@@ -10,7 +10,7 @@ import indulgent from './assets/images/indulgent.png'
 import refreshing from './assets/images/refreshing.png'
 
 // API base URL
-const API_BASE_URL = 'https://restaurant-recommendation-daad.onrender.com'
+const API_BASE_URL = 'https://backend-restless-meadow-2397.fly.dev'
 
 /**
  * Array of mood images with their corresponding names and sources
@@ -39,6 +39,7 @@ function App() {
   const [selectedLanguage, setSelectedLanguage] = useState('English')
   const [loading, setLoading] = useState(false)
   const [translating, setTranslating] = useState(false)
+  const [userLocation, setUserLocation] = useState('Atlanta, GA')
 
   /**
    * Formats recommendation text by adding emojis to field labels
@@ -48,10 +49,12 @@ function App() {
   const formatRecommendation = (text) => {
     const lines = text.split('\n').filter(line => line.trim())
     const formattedLines = lines.map(line => {
-      if (line.startsWith('**') && line.includes(':')) {
-        const match = line.match(/\*\*([^*]+):\*\*/)
-        if (match) {
-          const fieldName = match[1].toLowerCase()
+      // Handle **Field:** format
+      if (line.includes('**') && line.includes(':')) {
+        const fieldMatch = line.match(/\*\*([^*]+):\*\*(.*)/) || line.match(/\*\*([^*]+):\s*(.*)/) 
+        if (fieldMatch) {
+          const fieldName = fieldMatch[1].toLowerCase()
+          const content = fieldMatch[2] || ''
           let emoji = ''
           
           if (fieldName.includes('summary')) emoji = '📝'
@@ -64,13 +67,43 @@ function App() {
           else if (fieldName.includes('price')) emoji = '💰'
           else if (fieldName.includes('popular')) emoji = '🍽️'
           
-          return line.replace(/\*\*([^*]+):\*\*/g, `<strong>${emoji} $1:</strong>`)
+          return `<strong>${emoji} ${fieldMatch[1]}:</strong>${content}`
         }
       }
       return line
     })
     return formattedLines
   }
+
+  /**
+   * Gets user's location using geolocation API
+   */
+  const getUserLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords
+            // Use reverse geocoding to get city/state
+            const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`)
+            const data = await response.json()
+            const location = `${data.city}, ${data.principalSubdivision}`
+            setUserLocation(location)
+          } catch (error) {
+            console.log('Geocoding failed, using default location')
+          }
+        },
+        (error) => {
+          console.log('Geolocation failed, using default location')
+        }
+      )
+    }
+  }
+
+  // Get user location on component mount
+  useEffect(() => {
+    getUserLocation()
+  }, [])
 
   /**
    * Fetches restaurant recommendation from backend API
@@ -82,7 +115,10 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/recommend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mood: mood || selectedMood })
+        body: JSON.stringify({ 
+          mood: mood || selectedMood,
+          location: userLocation 
+        })
       })
       const data = await response.json()
       if (data.error) {
@@ -145,7 +181,8 @@ function App() {
         if (line.includes('📝') || line.includes('📞') || line.includes('📍') || 
             line.includes('😊') || line.includes('✅') || line.includes('⭐') || 
             line.includes('🕒') || line.includes('💰') || line.includes('🍽️')) {
-          return line
+          // Remove asterisks from already formatted lines
+          return line.replace(/\*\*/g, '')
         }
         
         // Always add emoji and formatting based on position

@@ -43,10 +43,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load restaurant dataset at application startup
-customer_reviews_df = load_parquet_from_huggingface(REPO_ID, FILE_NAME)
-if customer_reviews_df is None:
-    raise ValueError("Dataset failed to load.")
+# Global variable to cache dataset
+customer_reviews_df = None
+
+def get_dataset():
+    """Lazy load dataset only when needed"""
+    global customer_reviews_df
+    if customer_reviews_df is None:
+        try:
+            print("Loading dataset...")
+            customer_reviews_df = load_parquet_from_huggingface(REPO_ID, FILE_NAME, max_rows=1000)
+            if customer_reviews_df is None:
+                print("Dataset failed to load")
+        except Exception as e:
+            print(f"Dataset loading error: {e}")
+            customer_reviews_df = None
+    return customer_reviews_df
 
 class MoodRequest(BaseModel):
     """
@@ -54,8 +66,10 @@ class MoodRequest(BaseModel):
     
     Attributes:
         mood (str): Selected mood category (e.g., 'adventurous', 'romantic')
+        location (str, optional): User's location (city, state or coordinates)
     """
     mood: str
+    location: str = "Atlanta, GA"  # Default location
 
 class TranslateRequest(BaseModel):
     """
@@ -89,29 +103,43 @@ async def get_recommendation(request: MoodRequest):
     """
     try:
         user_selected_mood = request.mood.lower()
+        user_location = request.location
         
-        # Find restaurant recommendation based on mood
-        recommendation = recommend_restaurant_by_mood_content(customer_reviews_df, user_selected_mood)
+        # Generate restaurant recommendation directly with AI
+        from langchain_google_genai.chat_models import ChatGoogleGenerativeAI
+        from utils import GEMINI_MODEL, GEMINI_API_KEY, format_restaurant_details
         
-        if recommendation is None:
-            return {"error": "No restaurants found for this mood!"}
+        import random
+        random_seed = random.randint(1, 1000)
         
-        # Extract restaurant basic information
-        rec_object = {
-            "name": recommendation["business_name"],
-            "address": recommendation["address"],
-            "city": recommendation["city"]
-        }
+        llm = ChatGoogleGenerativeAI(model=GEMINI_MODEL, google_api_key=GEMINI_API_KEY, temperature=0.9)
+        prompt = f"""Find a different highly-rated (4-5 star) restaurant in {user_location} that matches a {user_selected_mood} mood. Choose randomly from available options (seed: {random_seed}). 
+        Provide ONLY this exact format with no introduction:
+        **Summary:** [Restaurant Name - brief description of cuisine/atmosphere, no address]
+        **Phone:** [phone number]
+        **Address:** [full street address]
+        **Moods:** {user_selected_mood.title()}
+        **Highlight:** [key unique feature or specialty]
+        **Rating:** [rating and review info]
+        **Hours:** [operating hours]
+        **Price:** [price range like $$$ or $15-25 per person]
+        **Popular Items:** [specific popular dishes]"""
         
-        # Get detailed information using AI
-        restaurant_details = get_details_from_llm(
-            rec_object["name"], 
-            rec_object["city"], 
-            rec_object["address"]
-        )
+        response = llm.invoke(prompt)
+        # Process the response to add emojis like the original format  
+        formatted_details = format_restaurant_details(type('MockData', (), {
+            'summary': 'AI Generated',
+            'phone': 'See response', 
+            'address': 'See response',
+            'highlight': 'See response',
+            'rating': 'See response',
+            'hours': 'See response', 
+            'price': 'See response',
+            'popular_items': 'See response'
+        })(), user_selected_mood.title())
         
-        # Format details for frontend display
-        formatted_details = format_restaurant_details(restaurant_details, user_selected_mood.title())
+        # Override with actual AI response
+        formatted_details = response.content
         
         return {"recommendation": formatted_details}
     except Exception as e:
@@ -150,5 +178,5 @@ if __name__ == "__main__":
     - Auto-reload enabled for development
     """
     import uvicorn
-    port = int(os.getenv("PORT", 8000))
+    port = int(os.getenv("PORT", 8080))
     uvicorn.run(app, host="0.0.0.0", port=port)
