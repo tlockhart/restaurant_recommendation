@@ -138,7 +138,7 @@ def translate(input_text, target_language):
         "German": "deu_Latn",
         "Romanian": "ron_Latn"
     }
-    translator = pipeline("translation", model="facebook/nllb-200-distilled-600M", device="mps")
+    translator = pipeline("translation", model="facebook/nllb-200-distilled-600M", device="cpu")
     target_code = language_codes.get(target_language)
     if not target_code:
         raise ValueError(f"Language {target_language} not supported!")
