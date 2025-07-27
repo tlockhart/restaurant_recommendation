@@ -102,7 +102,7 @@ Open your web browser and go to `http://localhost:5173` to use the restaurant re
 2. Connect your GitHub repository
 3. Configure the service:
    - **Build Command:** `pip install -r backend/requirements.txt`
-   - **Start Command:** `cd backend && python main.py`
+   - **Start Command:** `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT`
    - **Environment:** Python 3.9+
 4. Add environment variables in Render dashboard:
    - `GEMINI_API_KEY=your_api_key`

@@ -13,7 +13,7 @@ from dotenv import load_dotenv, find_dotenv
 from langchain_core.prompts import PromptTemplate
 from langchain.output_parsers import PydanticOutputParser
 from pydantic import Field, BaseModel
-from transformers import pipeline
+# from transformers import pipeline  # Removed to reduce memory usage
 import pandas as pd
 from huggingface_hub import hf_hub_download
 import os
@@ -120,11 +120,11 @@ def format_restaurant_details(data, mood):
 
 def translate(input_text, target_language):
     """
-    Translates text to specified target language using NLLB model.
+    Translates text to specified target language using Google Gemini.
     
     Args:
         input_text (str): Text to translate
-        target_language (str): Target language (French, German, Romanian)
+        target_language (str): Target language (Spanish, French, German, Romanian)
         
     Returns:
         str: Translated text
@@ -132,27 +132,15 @@ def translate(input_text, target_language):
     Raises:
         ValueError: If target language is not supported
     """
-    language_codes = {
-        "Spanish": "spa_Latn",
-        "French": "fra_Latn",
-        "German": "deu_Latn",
-        "Romanian": "ron_Latn"
-    }
-    translator = pipeline("translation", model="facebook/nllb-200-distilled-600M", device="cpu")
-    target_code = language_codes.get(target_language)
-    if not target_code:
+    supported_languages = ["Spanish", "French", "German", "Romanian"]
+    if target_language not in supported_languages:
         raise ValueError(f"Language {target_language} not supported!")
 
-    lines = input_text.split("\n")
-    translated_lines = []
-    for line in lines:
-        if line.strip() == "":
-            translated_lines.append("")
-        else:
-            translated_line = translator(line, src_lang="eng_Latn", tgt_lang=target_code)[0]["translation_text"]
-            translated_lines.append(translated_line)
-
-    return "\n".join(translated_lines)
+    llm = ChatGoogleGenerativeAI(model=GEMINI_MODEL, google_api_key=GEMINI_API_KEY, temperature=0.1)
+    prompt = f"Translate the following text to {target_language}. Keep the same formatting and structure:\n\n{input_text}"
+    
+    response = llm.invoke(prompt)
+    return response.content
 
 def load_parquet_from_huggingface(repo_id, filename):
     """
