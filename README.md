@@ -4,7 +4,7 @@ An AI-powered restaurant recommendation system that suggests Philadelphia restau
 
 ## Description
 
-> **Important Note:** The `philly_reviews_with_mood.parquet` dataset used in this application contains 74.8k 4- and 5-star Yelp restaurant reviews from the Philadelphia area. Each review was preprocessed using the Hugging Face all-MiniLM-L6-v2 sentence embeddings model and classified into one of eight mood categories. The model achieved approximately 60% accuracy on a sample subset compared to human-labeled moods.
+> **Important Note:** The original version used a dataset of 74.8K pre-classified Yelp restaurant reviews labeled by mood to generate personalized suggestions. However, the system now uses Google Gemini for real-time classification, due to the file size limitation below, instead of the philly_reviews_with_mood.parquet file.
 
 This application helps users discover restaurants that match their current mood through an intuitive visual interface. Users can:
 
@@ -116,10 +116,33 @@ Open your web browser and go to `http://localhost:5173` to use the restaurant re
    - **Publish Directory:** `frontend/dist`
 3. Update API URL in frontend code to your Render backend URL
 
+## Architecture Changes
+
+### Original Implementation
+The system was initially designed to use a 74.8k restaurant review dataset from Hugging Face with pre-classified mood embeddings. However, deployment constraints required architectural modifications.
+
+### Current Implementation
+Due to memory limitations on deployment platforms (Fly.io free tier: 512MB-1GB), the system now uses:
+- **Google Gemini AI** for real-time restaurant recommendations
+- **Geolocation detection** for user location-based suggestions
+- **Direct AI generation** instead of dataset querying
+
+### Platform Constraints
+- **Fly.io Memory Limits**: Free tier (512MB), paid tier (1GB+)
+- **MongoDB Document Size**: 16MB BSON document limit
+- **Dataset Size**: Original 74.8k reviews (~200MB+ in memory) exceeded limits
+
+### Future Improvements
+For production scale, consider:
+- **Vector Database** (Pinecone, Weaviate, Chroma) for efficient similarity search
+- **Chunked data loading** with pagination
+- **Caching strategies** for frequently accessed data
+- See `VECTOR_DB_NOTES.md` for detailed migration plan
+
 ## Technology Stack
 
 - **Frontend**: React, Vite, CSS3
 - **Backend**: FastAPI, Python
-- **AI/ML**: Google Gemini API, Hugging Face Datasets
-- **Data**: Philadelphia restaurant reviews with mood classifications
+- **AI/ML**: Google Gemini API
+- **Deployment**: Fly.io
 - **Translation**: Google Gemini AI translation capabilities
