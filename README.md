@@ -1,6 +1,6 @@
-# Philadelphia Restaurant Recommendation System
+# Local Restaurant Recommendation System
 
-An AI-powered restaurant recommendation system that suggests Philadelphia restaurants based on your mood. The application features a React frontend with mood-based image selection and a FastAPI backend that uses machine learning to provide personalized restaurant recommendations with multilingual translation support.
+An AI-powered restaurant recommendation system that suggests local restaurants based on your mood. The application features a React frontend with mood-based image selection and a FastAPI backend that uses machine learning to provide personalized restaurant recommendations with multilingual translation support.
 
 ## Description
 
