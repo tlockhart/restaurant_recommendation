@@ -10,7 +10,7 @@ import indulgent from './assets/images/indulgent.png'
 import refreshing from './assets/images/refreshing.png'
 
 // API base URL
-const API_BASE_URL = 'https://backend-restless-meadow-2397.fly.dev'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
 /**
  * Array of mood images with their corresponding names and sources
