@@ -21,7 +21,6 @@ from utils import (
     load_parquet_from_huggingface, 
     recommend_restaurant_by_mood_content, 
     get_details_from_llm, 
-    format_restaurant_details, 
     translate, 
     REPO_ID, 
     FILE_NAME
@@ -107,7 +106,7 @@ async def get_recommendation(request: MoodRequest):
         
         # Generate restaurant recommendation directly with AI
         from langchain_google_genai.chat_models import ChatGoogleGenerativeAI
-        from utils import GEMINI_MODEL, GEMINI_API_KEY, format_restaurant_details
+        from utils import GEMINI_MODEL, GEMINI_API_KEY
         
         import random
         random_seed = random.randint(1, 1000)
@@ -115,30 +114,17 @@ async def get_recommendation(request: MoodRequest):
         llm = ChatGoogleGenerativeAI(model=GEMINI_MODEL, google_api_key=GEMINI_API_KEY, temperature=0.9)
         prompt = f"""Find a different highly-rated (4-5 star) restaurant in {user_location} that matches a {user_selected_mood} mood. Choose randomly from available options (seed: {random_seed}). 
         Provide ONLY this exact format with no introduction:
-        **Summary:** [Restaurant Name - brief description of cuisine/atmosphere, no address]
-        **Phone:** [phone number]
-        **Address:** [full street address]
-        **Moods:** {user_selected_mood.title()}
-        **Highlight:** [key unique feature or specialty]
-        **Rating:** [rating and review info]
-        **Hours:** [operating hours]
-        **Price:** [price range like $$$ or $15-25 per person]
-        **Popular Items:** [specific popular dishes]"""
+        📝 Summary: [Restaurant Name - brief description of cuisine/atmosphere, no address]
+        📞 Phone: [phone number]
+        📍 Address: [full street address]
+        😊 Moods: {user_selected_mood.title()}
+        ✅ Highlight: [key unique feature or specialty]
+        ⭐ Rating: [rating and review info]
+        🕒 Hours: [operating hours]
+        💰 Price: [price range like $$$ or $15-25 per person]
+        🍽️ Popular Items: [specific popular dishes]"""
         
         response = llm.invoke(prompt)
-        # Process the response to add emojis like the original format  
-        formatted_details = format_restaurant_details(type('MockData', (), {
-            'summary': 'AI Generated',
-            'phone': 'See response', 
-            'address': 'See response',
-            'highlight': 'See response',
-            'rating': 'See response',
-            'hours': 'See response', 
-            'price': 'See response',
-            'popular_items': 'See response'
-        })(), user_selected_mood.title())
-        
-        # Override with actual AI response
         formatted_details = response.content
         
         return {"recommendation": formatted_details}
