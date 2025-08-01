@@ -107,15 +107,15 @@ def format_restaurant_details(data, mood):
     Returns:
         str: Formatted restaurant details string
     """
-    return f"""**Summary:** {data.summary}
-**Phone:** {data.phone}
-**Address:** {data.address}
-**Moods:** {mood}
-**Highlight:** {data.highlight}
-**Rating:** {data.rating}
-**Hours:** {data.hours}
-**Price:** {data.price}
-**Popular Items:** {data.popular_items}
+    return f"""📝 Summary: {data.summary}
+📞 Phone: {data.phone}
+📍 Address: {data.address}
+😊 Moods: {mood}
+✅ Highlight: {data.highlight}
+⭐ Rating: {data.rating}
+🕒 Hours: {data.hours}
+💰 Price: {data.price}
+🍽️ Popular Items: {data.popular_items}
 """
 
 def translate(input_text, target_language):

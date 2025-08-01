@@ -41,39 +41,7 @@ function App() {
   const [translating, setTranslating] = useState(false)
   const [userLocation, setUserLocation] = useState('Atlanta, GA')
 
-  /**
-   * Formats recommendation text by adding emojis to field labels
-   * @param {string} text - Raw recommendation text
-   * @returns {Array<string>} Formatted lines with emojis
-   */
-  const formatRecommendation = (text) => {
-    const lines = text.split('\n').filter(line => line.trim())
-    const formattedLines = lines.map(line => {
-      // Handle **Field:** format
-      if (line.includes('**') && line.includes(':')) {
-        const fieldMatch = line.match(/\*\*([^*]+):\*\*(.*)/) || line.match(/\*\*([^*]+):\s*(.*)/) 
-        if (fieldMatch) {
-          const fieldName = fieldMatch[1].toLowerCase()
-          const content = fieldMatch[2] || ''
-          let emoji = ''
-          
-          if (fieldName.includes('summary')) emoji = '📝'
-          else if (fieldName.includes('phone')) emoji = '📞'
-          else if (fieldName.includes('address')) emoji = '📍'
-          else if (fieldName.includes('mood')) emoji = '😊'
-          else if (fieldName.includes('highlight')) emoji = '✅'
-          else if (fieldName.includes('rating')) emoji = '⭐'
-          else if (fieldName.includes('hour')) emoji = '🕒'
-          else if (fieldName.includes('price')) emoji = '💰'
-          else if (fieldName.includes('popular')) emoji = '🍽️'
-          
-          return `<strong>${emoji} ${fieldMatch[1]}:</strong>${content}`
-        }
-      }
-      return line
-    })
-    return formattedLines
-  }
+
 
   /**
    * Gets user's location using geolocation API
@@ -124,9 +92,9 @@ function App() {
       if (data.error) {
         setRecommendation(data.error)
       } else {
-        const formatted = formatRecommendation(data.recommendation)
-        setRecommendation(formatted)
-        setOriginalRecommendation(formatted)
+        const lines = data.recommendation.split('\n').filter(line => line.trim())
+        setRecommendation(lines)
+        setOriginalRecommendation(lines)
         setShowTranslation(true)
       }
     } catch (error) {
@@ -171,35 +139,7 @@ function App() {
       const data = await response.json()
       const translatedLines = data.translated_text.split('\n').filter(line => line.trim())
       
-      // Map emojis based on line index to match original order
-      const emojis = ['📝', '📞', '📍', '😊', '✅', '⭐', '🕒', '💰', '🍽️']
-      
-      const formattedTranslation = translatedLines.map((line, index) => {
-        const emoji = emojis[index] || ''
-        
-        // Check if line already has emoji to prevent duplicates
-        if (line.includes('📝') || line.includes('📞') || line.includes('📍') || 
-            line.includes('😊') || line.includes('✅') || line.includes('⭐') || 
-            line.includes('🕒') || line.includes('💰') || line.includes('🍽️')) {
-          // Remove asterisks from already formatted lines
-          return line.replace(/\*\*/g, '')
-        }
-        
-        // Always add emoji and formatting based on position
-        if (line.includes(':')) {
-          const colonIndex = line.indexOf(':')
-          const label = line.substring(0, colonIndex + 1)
-          const content = line.substring(colonIndex + 1)
-          return `<strong>${emoji} ${label}</strong>${content}`
-        } else {
-          // For lines without colons, add a generic label based on position
-          const labels = ['Summary:', 'Phone:', 'Address:', 'Moods:', 'Highlight:', 'Rating:', 'Hours:', 'Price:', 'Popular Items:']
-          const label = labels[index] || 'Info:'
-          return `<strong>${emoji} ${label}</strong> ${line}`
-        }
-      })
-      
-      setRecommendation(formattedTranslation)
+      setRecommendation(translatedLines)
     } catch (error) {
       console.error('Translation error:', error)
       setRecommendation(['Translation error: ' + error.message])
